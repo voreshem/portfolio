@@ -1,62 +1,42 @@
 import json
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import cartopy.crs as ccrs
+from cartopy.io.img_tiles import OSM
 
 
 with open("2014_10_20.json") as f:
     source = f.read()
 
-hike_data = json.loads(source)
-hike_data = hike_data['data'][0]
+hike_dict = json.loads(source)
+hike_data = hike_dict['data'][0]
 hike_values = hike_data['values']
 hike_fields = hike_data['fields']
 
 clean_data = [dict(zip(hike_fields, v)) for v in hike_values]
-df_data = pd.DataFrame(columns=hike_fields, data=hike_values)
+for d in clean_data:
+    d['lat'] = d['latlng'][0]
+    d['lon'] = d['latlng'][1]
 
-'''
-# Toying with & learning mapping frameworks
+hike_df = pd.DataFrame(columns=hike_fields, data=hike_values)
+latlng_df = pd.DataFrame(hike_df.latlng.values.tolist(), columns=['lat', 'lon'])
 
-import cartopy.crs as ccrs
-import cartopy.io.img_tiles as cimgt
-from cartopy.io.img_tiles import OSM
-import cartopy.feature as cfeature
-from cartopy.io import shapereader
-from cartopy.io.img_tiles import StamenTerrain
-from cartopy.io.img_tiles import GoogleTiles
-from owslib.wmts import WebMapTileService
-import matplotlib.pyplot as plt
-from matplotlib.path import Path
-import matplotlib.patheffects as PathEffects
-import matplotlib.patches as mpatches
+hikedf = pd.concat([hike_df, latlng_df], axis=1)
 
+def main():
+    img = OSM()
+    plt.figure(figsize=(60,60))
+    ax = plt.axes(projection=img.crs)
 
+    ax.set_extent([-80.127383, -80.095359, 26.911549, 26.883035])
 
-plt.figure(figsize=(10,10))
-stamen_terrain = cimgt.StamenTerrain()
-ax = plt.axes(projection=stamen_terrain.crs)
-ax.set_extent((-80.127383, -80.095359, 26.911549, 26.883035))
-ax.add_image(stamen_terrain, 8)
+    ax.add_image(img, 18)
 
-plt.show()
+    x, y = hikedf.lon, hikedf.lat
 
+    ax.plot(x, y, '.', transform=ccrs.Geodetic(), color='red')
 
-plt.figure(figsize=(10,10))
+    plt.savefig("test_map.png")
 
-
-fig = plt.figure(figsize=(20,20))
-
-imagery = OSM()
-
-ax = plt.axes(projection=imagery.crs, )
-ax.set_extent((-80.127383, -80.095359, 26.911549, 26.883035))
-
-    # Add the imagery to the map.
-zoom = 20
-ax.add_image(imagery, zoom)
-
-plt.title('Open Street Map and Cartopy')
-plt.show()
-'''
+if __name__ == '__main__':
+    main()
