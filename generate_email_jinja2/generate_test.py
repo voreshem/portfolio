@@ -27,14 +27,15 @@ def generate_email(data):
             + data['zip']
         )
 
-        template = j2.Template(open('email.html.jinja2').read())
+        template = j2.Template(open('test.html.jinja2').read())
         html = template.render(data=data)
         env = j2.Environment(autoescape=True).from_string(html)
         
         print(env.render(data=data))
         '''
         -*--for testing and saving to a static file--*-
-
+        
         env.stream(data=data).dump("jinja_test.html")
         '''
+        
 generate_email(data)

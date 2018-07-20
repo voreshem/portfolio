@@ -1,0 +1,33 @@
+<!-->This is a test template just for checking the function</-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Address Data Filler</title>
+  <style>
+    body{
+      width: 90%;
+      margin: auto;
+      font-family: "Helvetica Neue";
+    }
+  </style>
+</head>
+<body>
+   <h1>I'm about to tell you an address!!!</h1>
+   <p>The address is<br>
+    <strong>{{ data.address }}</strong> and it is a fun house!!!</p>
+
+    <h2>Let's see what else we've got!!!</h2>
+    Things about the address:
+          <br>
+    {% for k, v in data.items() %}
+        <div>
+        The {{ k }} is:<br> {{ v }}</div>
+        <br>
+    {% endfor %}
+    <div></div>
+
+    <p><strong>WOW I WISH I COULD LIVE THERE! ! ! ?</strong></p>
+</body>
+</html>
