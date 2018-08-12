@@ -1,42 +1,124 @@
 import json
+import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.io.img_tiles import GoogleTiles
 
 
-with open("2014_10_20.json") as f:
-    source = f.read()
+def parse_strava(source):
+    '''
+    info
+    '''
 
-hike_dict = json.loads(source)
-hike_data = hike_dict['data'][0]
-hike_values = hike_data['values']
-hike_fields = hike_data['fields']
+    strava_dict = json.loads(source)
+    strava_data = strava_dict['data'][0]
 
-clean_data = [dict(zip(hike_fields, v)) for v in hike_values]
-for d in clean_data:
-    d['lat'] = d['latlng'][0]
-    d['lon'] = d['latlng'][1]
+    strava_data['fields'].insert(1, 'lat')
+    strava_data['fields'].insert(2, 'lon')
+    strava_data['fields'].remove('latlng')
 
-hike_df = pd.DataFrame(columns=hike_fields, data=hike_values)
-latlng_df = pd.DataFrame(hike_df.latlng.values.tolist(), columns=['lat', 'lon'])
+    for value in strava_data['values']:
+        latlng = value[1]
+        value[1:1] = [n for n in latlng]
+        value.remove(latlng)
 
-hikedf = pd.concat([hike_df, latlng_df], axis=1)
+    df = pd.DataFrame(columns=strava_data['fields'], data=strava_data['values'])
+    return df
 
-def main():
-    img = GoogleTiles(url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.jpg')
-    plt.figure(figsize=(100,100))
+
+def gen_sat_map(df):
+    '''
+    info
+    '''
+
+    img = GoogleTiles(
+        url='https://server.arcgisonline.com/ArcGIS/rest/services'
+        '/World_Imagery/MapServer/tile/{z}/{y}/{x}.jpg')
+    plt.figure(figsize=(100, 100))
     ax = plt.axes(projection=img.crs)
 
-    ax.set_extent([-80.127383, -80.095359, 26.911549, 26.883035])
+    def gen_map_extent(df):
+        '''
+        info
+        '''
+        c = 0.05
 
+        min_x, max_x = min(df.lon), max(df.lon)
+        min_y, max_y = min(df.lat), max(df.lat)
+
+        def get_extent(min_num, max_num):
+            '''
+            info
+            '''
+            diff = max_num - min_num
+            delta = (diff/min_num)*100
+
+            __max__ = max_num + (c*delta)
+            __min__ = min_num - (c*delta)
+
+            extent.append(__min__)
+            extent.append(__max__)
+
+        extent = list()
+
+        get_extent(min_x, max_x)
+        get_extent(min_y, max_y)
+
+        return extent
+
+    ax.set_extent(extent)
     ax.add_image(img, 18)
+    x, y = df.lon, df.lat
+    ax.plot(x, y, transform=ccrs.Geodetic(), color='orange', linewidth=3)
+    plt.savefig("strava_map_" + f.name.strip(".json") + ".png")
 
-    x, y = hikedf.lon, hikedf.lat
+def clean_fname(fname):
+    '''
+    info
+    '''
+    if fname.endswith('.json') == False and fname.endswith('.JSON') == False:
+        return fname + '.json'
+    elif fname.endswith('.JSON'):
+        return fname.replace('JSON', 'json')
+    else:
+        return fname
 
-    ax.plot(x, y, transform=ccrs.Geodetic(), color='blue', linewidth=3)
-
-    plt.savefig("test_map.png")
 
 if __name__ == '__main__':
-    main()
+    print('\n'+"The following JSON files are available for mapping:\n")
+    [print(filename) for filename in glob.glob("*.json")]
+
+    filename_input = input("Enter JSON filename: \n \n")
+    filename_input = clean_fname(filename_input)
+    
+    good_data = False
+
+    while good_data is False:
+        try:
+            with open(filename_input) as f:
+                source = f.read()
+                        
+            if True not in [n.startswith(filename_input) for n in glob.glob('*.json')]:
+                raise FileNotFoundError
+            if 'Strava' not in source:
+                raise ValueError
+
+        except FileNotFoundError:
+            print('\n'+filename_input + " does not exist...")
+            break
+
+        except ValueError:
+            print('\n' + f.name + " is not a JSON from Strava!")
+            break
+
+        else:
+            print("\n" + f.name + " imported successfully!" + (2*"\n") + "Parsing geolocation data!")
+            df = parse_strava(source)
+            good_data = True
+
+        finally:
+            if good_data is True:
+                break
+            else:
+                good_data = False
