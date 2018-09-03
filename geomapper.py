@@ -1,12 +1,14 @@
 import json
+import xmltodict
 import glob
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.io.img_tiles import GoogleTiles
 
 
-def parse_strava(source):
+def parse_json(source):
     '''
     info
     '''
@@ -26,11 +28,23 @@ def parse_strava(source):
     df = pd.DataFrame(columns=strava_data['fields'], data=strava_data['values'])
     return df
 
+def parse_gpx(source):
+    '''
+    info
+    '''
+    strava_data = xmltodict.parse(source)
+    strava_data = strava_data['gpx']['trk']['trkseg']['trkpt']
+    df = pd.DataFrame(strava_data)
+    df.columns = ['lat', 'lon', 'ele', 'time']
+    df = df[['lat', 'lon']].apply(pd.to_numeric)
+    return df
+
 
 def gen_sat_map(df):
     '''
     info
     '''
+    print("\nDownloading data and plotting map!")
 
     img = GoogleTiles(
         url='https://server.arcgisonline.com/ArcGIS/rest/services'
@@ -54,8 +68,13 @@ def gen_sat_map(df):
             diff = max_num - min_num
             delta = (diff/min_num)*100
 
-            __max__ = max_num + (c*delta)
-            __min__ = min_num - (c*delta)
+            if max_num > 0 and min_num > 0:
+                __max__ = max_num + (c*delta)
+                __min__ = min_num - (c*delta)
+
+            elif max_num < 0 and min_num < 0:
+                __max__ = max_num - (c*delta)
+                __min__ = min_num + (c*delta)
 
             extent.append(__min__)
             extent.append(__max__)
@@ -67,29 +86,47 @@ def gen_sat_map(df):
 
         return extent
 
+    extent = gen_map_extent(df)
+
     ax.set_extent(extent)
     ax.add_image(img, 18)
     x, y = df.lon, df.lat
-    ax.plot(x, y, transform=ccrs.Geodetic(), color='orange', linewidth=3)
-    plt.savefig("strava_map_" + f.name.strip(".json") + ".png")
+    ax.plot(x, y, transform=ccrs.Geodetic(), color='purple', linewidth=5);
+    plt.savefig("./maps/strava_map_" + f.name.strip(f.name[-4:]) + ".png", bbox_inches="tight")
+    plt.close()
 
 def clean_fname(fname):
     '''
     info
     '''
-    if fname.endswith('.json') == False and fname.endswith('.JSON') == False:
-        return fname + '.json'
-    elif fname.endswith('.JSON'):
-        return fname.replace('JSON', 'json')
+    if fname in filelist:
+        return [file for file in filelist if fname in file][0]
+
+    elif any([file.startswith(fname) for file in filelist]) == True:
+        return [file for file in filelist if file.startswith(fname)][0]
+
     else:
         return fname
 
+def auto(source):
+    '''
+    info
+    '''
+    if 'gpx' in source:
+        df = parse_gpx(source)
+        gen_sat_map(df)
+
+    elif 'json' in source:
+        df = parse_json(source)
+        gen_sat_map(df)
+
 
 if __name__ == '__main__':
-    print('\n'+"The following JSON files are available for mapping:\n")
-    [print(filename) for filename in glob.glob("*.json")]
+    filelist = (glob.glob("*.json") + glob.glob("*.gpx"))
+    print("\nThe following JSON & GPX files are available for mapping:\n")
+    [print(filename) for filename in filelist]
 
-    filename_input = input("Enter JSON filename: \n \n")
+    filename_input = input("Enter JSON or GPX filename: \n \n")
     filename_input = clean_fname(filename_input)
     
     good_data = False
@@ -99,7 +136,7 @@ if __name__ == '__main__':
             with open(filename_input) as f:
                 source = f.read()
                         
-            if True not in [n.startswith(filename_input) for n in glob.glob('*.json')]:
+            if True not in [n.startswith(filename_input) for n in filelist]:
                 raise FileNotFoundError
             if 'Strava' not in source:
                 raise ValueError
@@ -109,16 +146,39 @@ if __name__ == '__main__':
             break
 
         except ValueError:
-            print('\n' + f.name + " is not a JSON from Strava!")
+            print('\n' + f.name + " is not a JSON or GPX from Strava!")
             break
 
         else:
             print("\n" + f.name + " imported successfully!" + (2*"\n") + "Parsing geolocation data!")
-            df = parse_strava(source)
-            good_data = True
+            
+            if f.name.endswith('.gpx') == True:
+                df = parse_gpx(source)
+                good_data = True
+
+            elif f.name.endswith('.json') == True:
+                df = parse_json(source)
+                good_data = True
 
         finally:
             if good_data is True:
                 break
             else:
                 good_data = False
+
+    gen_sat_map(df)
+    print("DONE!")
+
+else:
+    filelist = (glob.glob("*.json") + glob.glob("*.gpx"))
+    numfiles = len(filelist)
+    print("\nPlotting all " + str(numfiles) + " JSON & GPX files in current directory!\n")
+    if not os.path.exists('maps'):
+        os.makedirs('maps')
+    for fname in filelist:
+        print("\nProcessing file: " + str(filelist.index(fname)+1) + '/' + str(numfiles) + '...\n')
+        with open(fname) as f:
+            source = f.read()
+        auto(source)
+        print("\nFile DONE!")
+    print("\nFINISHED!")
