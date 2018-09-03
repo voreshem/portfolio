@@ -40,6 +40,8 @@ When run with `bash buoy_placement.sh`:
     Upon completion, ImageMagick runs `compare` on maps.
     Finally, the generated maps & buoy coordinate txt file are opened.
 '''
+#####################
+
 
 # XML-Processing Import
 import xmltodict
@@ -169,7 +171,12 @@ def gen_sat_map(df, place=False):
 
 
 def avg_buoy_dist(buoys):
-    '''info'''
+    '''
+    Takes pd.DataFrame: `buoys`.
+    Finds the geographic distance from one buoy to the next, sequentially.
+    Calculates the average buoy-to-buoy distance, with a 2-figure precision.
+    Returns a numpy float64 of the average distance: `avg_dist`.
+    '''
     dlist = []
     iter_buoys = iter(buoys)
     next(iter_buoys)
