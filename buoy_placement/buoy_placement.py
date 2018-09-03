@@ -65,7 +65,7 @@ __author__ = "CJ Hague"
 __copyright__ = "Copyright 2018, CJ Hague et al."
 
 __license__ = "CC BY-NC-ND 4.0"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "CJ Hague"
 __status__ = "Development"
 
@@ -103,7 +103,7 @@ def gen_sat_map(df, place=False):
     Writes buoy placement figure to file.
     Returns buoy placement pd.DataFrame: `df`
     '''
-    print("\nDownloading data and plotting map!")
+    print("Downloading data and plotting map!")
 
     img = GoogleTiles(
         url='https://server.arcgisonline.com/ArcGIS/rest/services'
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     ind = np.lexsort((buoys[:,0], buoys[:,1]))
     buoys = buoys[ind]
 
-    print("\nSaving buoy coordinates to text file!")
+    print("Saving buoy coordinates to text file!")
     F = open("buoy_placement_coordinates.txt", 'w')
     F.write("Buoy Placement Coordinates: \n")
     for y,x in buoys:
@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
     avg_buoy_dist = avg_buoy_dist(buoys)
 
-    dist_message = f"\nThe average distance from buoy-to-buoy, between the {len(buoys)} buoys, is {avg_buoy_dist}ft!"
+    dist_message = f"The average distance from buoy-to-buoy, between the {len(buoys)} buoys, is {avg_buoy_dist}ft!"
     with open('buoy_placement_coordinates.txt', 'a') as f:
         f.write('\n\n')
         f.write(dist_message)
@@ -235,4 +235,4 @@ else:
     gen_sat_map(df, place=False)
 
 
-print("\nDONE")
+print("DONE")
