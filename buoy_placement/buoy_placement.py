@@ -2,22 +2,73 @@
 
 ####----*----buoy_placement----*----####
 """
-buoy_placement takes a
+buoy_placement uses a GPX file from Strava,
+to select buoy locations,
+from a recorded kayaking session,
+by using Cluster Analysis from scikit-learn,
+to provide The Jupiter Inlet Foundation with locations,
+for their conservation buoys.
 """
 
+##### Operation #####
+'''
+Ensure that `buoy_placement` gpx, sh, and py files are together within
+    desired directory.
+
+Run ALL actions with: `bash buoy_placement.sh`
+
+To plot raw kayak session run bash: `$ python -c "import buoy_placement"`
+
+To plot buoy locations run bash: `python buoy_placement.py`
+
+This file performs the following:
+    1) Loads Modules.
+    2) Loads GPX file.
+    3) Parses GPX file into desired format.
+    4) Performs Cluster Analysis on coordinates.
+    5) Calculates buoy locations.
+    6) Generates map plot.
+    7) Writes map plot to file.
+    8) Sorts buoy coordinates.
+    9) Writes buoy coordinates to file.
+    10) Calculates average geographic buoy distance.
+    11) Writes average geographic buoy distance to file.
+    12) Prints buoy distance shell notification: `dist_message`.
+    13) Prints completion notice: "DONE!"
+
+When run with `bash buoy_placement.sh`:
+    Upon completion, ImageMagick runs `compare` on maps.
+    Finally, the generated maps & buoy coordinate txt file are opened.
+'''
+
+# XML-Processing Import
 import xmltodict
+
+# Data-Processing Lib Imports
 import numpy as np
 import pandas as pd
+
+# Figure-Plotting Imports
 import matplotlib.pyplot as plt
+
+# Geospatial Imports
 import cartopy.crs as ccrs
 from cartopy.io.img_tiles import GoogleTiles
 from geopy.distance import geodesic as gdis
+
+# Machine Learning Cluster Analysis Import
 from sklearn.cluster import KMeans
 
 
 def parse_gpx(source):
     '''
-    info
+    Takes GPX (an XML variant) file as str: `source`.
+    Converts str `source` to Python dict.
+    Selects desired keys.
+    Converts to pd.DataFrame.
+    Sets desired pd.DataFrame column names.
+    Converts coordinate str entries to float.
+    Returns pd.DataFrame: `df`.
     '''
     strava_data = xmltodict.parse(source)
     strava_data = strava_data['gpx']['trk']['trkseg']['trkpt']
@@ -29,7 +80,18 @@ def parse_gpx(source):
 
 def gen_sat_map(df, place=False):
     '''
-    info
+    Takes pd.DataFrame of kayak session: `df`, and `place` kwarg.
+    Prints shell notification.
+    Sets figure size, map tile, and figure axes.
+    Gets & sets map extent.
+    Downloads map image.
+    Uses `KMeans` Cluster Analysis to calculate clusters: n_clusters = 10
+    Rounds buoy placement coordinates to 6-figures of precision.
+    Generates buoy placement pd.DataFrame: `df`.
+    Sets lon & lat as x & y figure coordinates.
+    Plots buoy locations.
+    Writes buoy placement figure to file.
+    Returns buoy placement pd.DataFrame: `df`
     '''
     print("\nDownloading data and plotting map!")
 
@@ -41,7 +103,10 @@ def gen_sat_map(df, place=False):
 
     def gen_map_extent(df):
         '''
-        info
+        Takes pd.DataFrame: `df`.
+        Finds the min & max of each axis.
+        Calls `get_extent()` to get values.
+        Returns the map extent coordinates as list: `extent`.
         '''
         c = 0.05
 
@@ -50,7 +115,9 @@ def gen_sat_map(df, place=False):
 
         def get_extent(min_num, max_num):
             '''
-            info
+            Takes a given axis's min & max values as floats.
+            Calculates correct axis extent, regardless of hemisphere.
+            Appends given axis extent floats to list: `extent`.
             '''
             diff = max_num - min_num
             delta = (diff/min_num)*100
