@@ -61,6 +61,14 @@ from geopy.distance import geodesic as gdis
 # Machine Learning Cluster Analysis Import
 from sklearn.cluster import KMeans
 
+__author__ = "CJ Hague"
+__copyright__ = "Copyright 2018, CJ Hague et al."
+
+__license__ = "CC BY-NC-ND 4.0"
+__version__ = "1.0.0"
+__maintainer__ = "CJ Hague"
+__status__ = "Development"
+
 
 def parse_gpx(source):
     '''
