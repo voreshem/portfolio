@@ -17,7 +17,7 @@
 - **To only plot buoy locations, run in bash: `python buoy_placement.py`**
 
 *The generated files are saved into the directory containing the __gpx__, __sh__, and __py__ files, from which the script was run.*
-*In its final action, the script opens the newly-generated maps & text file which contains the coordinates.*
+*In its final action, the script opens the newly-generated maps & text file, which contains the coordinates.*
 
 ### Files:
 - `buoy_placement.sh`
