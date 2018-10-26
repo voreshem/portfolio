@@ -13,13 +13,13 @@ for their conservation buoys.
 ##### Operation #####
 '''
 Ensure that `buoy_placement` gpx, sh, and py files are together within
-    desired directory.
+    the desired directory.
 
-Run ALL actions with: `bash buoy_placement.sh`
+Run ALL actions with: `sh buoy_placement.sh`
 
-To plot raw kayak session run bash: `$ python -c "import buoy_placement"`
+To only plot raw kayak session, run in bash: `$ python -c "import buoy_placement"`
 
-To plot buoy locations run bash: `python buoy_placement.py`
+To only plot buoy locations, run in bash: `python buoy_placement.py`
 
 This file performs the following:
     1) Loads Modules.
@@ -36,7 +36,7 @@ This file performs the following:
     12) Prints buoy distance shell notification: `dist_message`.
     13) Prints completion notice: "DONE!"
 
-When run with `bash buoy_placement.sh`:
+When run with `sh buoy_placement.sh`:
     Upon completion, ImageMagick runs `compare` on maps.
     Finally, the generated maps & buoy coordinate txt file are opened.
 '''
