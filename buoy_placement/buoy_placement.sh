@@ -7,6 +7,7 @@ clear;
 
 echo $'\nPlotting map of raw data!';
 python -c "import buoy_placement";
+echo $'\n';
 echo $'Raw data FINISHED!';
 
 echo $'\nPlotting buoy locations!';
