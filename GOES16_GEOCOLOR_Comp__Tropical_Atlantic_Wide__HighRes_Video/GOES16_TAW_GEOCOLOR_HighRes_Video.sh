@@ -29,7 +29,7 @@ v_name="${v_date}__GOES16-ABI-taw-GEOCOLOR"
 ### H264_NVENC
 echo -e "\n Rendering h.264 video."
 f_name="${v_name}__h264_nvenc.mp4"
-ffmpeg -hwaccel cuda -pattern_type glob -i "*_GOES16-ABI-taw-GEOCOLOR-7200x4320.jpg" -vf scale=4096:-1 -c:v h264_nvenc -preset p7 -tune lossless -level 6.2 -rc vbr -pix_fmt yuv444p -r 30 $dir/${f_name} > /dev/null
+ffmpeg -hide_banner -loglevel quiet -hwaccel cuda -pattern_type glob -i "*_GOES16-ABI-taw-GEOCOLOR-7200x4320.jpg" -vf scale=4096:-1 -c:v h264_nvenc -preset p7 -tune lossless -level 6.2 -rc vbr -pix_fmt yuv444p -r 30 $dir/${f_name} 1> /dev/null
 if [ -f $f_name ]; then
     echo -e "\n File saved as:\n  $f_name in $dir"
 fi
@@ -37,7 +37,7 @@ fi
 ### HEVC_NVENC
 echo -e "\n Rendering HEVC video."
 f_name="${v_name}__hevc_nvenc.hevc"
-ffmpeg -hwaccel cuda -pattern_type glob -i "*_GOES16-ABI-taw-GEOCOLOR-7200x4320.jpg" -c:v hevc_nvenc -preset p7 -tune lossless -level 6.2 -rc vbr -pix_fmt yuv444p -r 30 $dir/${f_name} > /dev/null
+ffmpeg -hide_banner -loglevel quiet -hwaccel cuda -pattern_type glob -i "*_GOES16-ABI-taw-GEOCOLOR-7200x4320.jpg" -c:v hevc_nvenc -preset p7 -tune lossless -level 6.2 -rc vbr -pix_fmt yuv444p -r 30 $dir/${f_name} 1> /dev/null
 if [ -f $f_name ]; then
     echo -e "\n File saved as:\n  $f_name in $dir"
 fi
