@@ -14,7 +14,7 @@ highres_links = [url + link for link in highres_list]
 
 def download(link):
     file = link.split('/')[-1]
-        
+    os.system(f'echo "Downloading: {file}"')    
     with open(file, 'wb') as f:
         r = requests.get(link)
         image = r.content
